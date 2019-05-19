@@ -132,13 +132,7 @@
   <ItemGroup>
     <Content Include="1.ico" />
     <None Include="bg5.jpg" />
-    <None Include="bg3.jpg" />
-    <None Include="bg1.JPG" />
-    <None Include="bg2.png" />
-    <None Include="background.JPG" />
     <None Include="SJTUB2.png" />
-    <None Include="SJTUB.png" />
-    <None Include="SJTUbig.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

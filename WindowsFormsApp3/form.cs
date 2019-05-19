@@ -233,7 +233,7 @@ namespace WindowsFormsApp3
                 if (string.IsNullOrEmpty(HostName))
                 {
                     strHost = Interaction.GetSetting(cnstApp, cnstSection, "HostName", "");
-                    strHost = Interaction.InputBox("Please input robot host name", "Welding", strHost, 0, 0);
+                    strHost = Interaction.InputBox("Please input robot IP address", "Connect", strHost, 0, 0);
                     if (string.IsNullOrEmpty(strHost))
                     {
                         System.Environment.Exit(0);
