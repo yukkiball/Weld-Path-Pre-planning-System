@@ -44,7 +44,8 @@ namespace WindowsFormsApp3
         private double speed;   //焊接速度
         private double frequency;   //摆频
         private double range;   //摆幅
-        private double time;    //停留时间
+        private double time_l;    //左停留时间
+        private double time_r;    //右停留时间
         private double X;   //TCP左右
         private double Z;   //TCP上下
         private double P;   //焊枪倾角
@@ -55,20 +56,22 @@ namespace WindowsFormsApp3
         public double get_speed() { return speed; }
         public double get_range() { return range; }
         public double get_extension() { return extension; }
-        public double get_time() { return time; }
+        public double get_time_l() { return time_l; }
+        public double get_time_r() { return time_r; }
         public double get_X() { return X; }
         public double get_Z() { return Z; }
         public double get_P() { return P; }
         public PointF[] pots;
 
         //构造函数
-        public Pass(double c, double s, double f, double r, double t, double x, double z, double p, double e)
+        public Pass(double c, double s, double f, double r, double tl, double tr, double x, double z, double p, double e)
         {
             current = c;
             speed = s;
             frequency = f;
             range = r;
-            time = t;
+            time_l = tl;
+            time_r = tr;
             X = x;
             Z = z;
             P = p;

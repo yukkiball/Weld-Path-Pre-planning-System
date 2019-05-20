@@ -118,7 +118,7 @@ namespace WindowsFormsApp3
             SQLiteConnection connection = new SQLiteConnection(connectionstring);
             connection.Open();
             //选择所需参数
-            string sql = "SELECT layer, pass, X, Z, P, extension, current, speed, frequency, range, time FROM welding WHERE height = {0} AND angle = {1} AND gap = {2} AND edge = {3} AND mode = {4}";
+            string sql = "SELECT layer, pass, X, Z, P, extension, current, speed, frequency, range, time_l, time_r FROM welding WHERE height = {0} AND angle = {1} AND gap = {2} AND edge = {3} AND mode = {4}";
             string s = string.Format(sql, height, angle, gap, edge, mode);
             //Console.WriteLine(s);
             SQLiteDataAdapter da = new SQLiteDataAdapter(s, connection);
@@ -141,13 +141,29 @@ namespace WindowsFormsApp3
             dataGridView1.Columns[7].HeaderCell.Value = "焊接电压";
             dataGridView1.Columns[8].HeaderCell.Value = "摆频";
             dataGridView1.Columns[9].HeaderCell.Value = "摆幅";
-            dataGridView1.Columns[10].HeaderCell.Value = "停留时间";
+            dataGridView1.Columns[10].HeaderCell.Value = "左停留时间";
+            dataGridView1.Columns[11].HeaderCell.Value = "右停留时间";
             //设置列宽
-            for (int i = 0; i < 11; i++)
+            for (int i = 0; i < 8; i++)
             {
-                dataGridView1.Columns[i].Width = 89;
+                dataGridView1.Columns[i].Width = 80;
+            }
+            dataGridView1.Columns[8].Width = 70;
+            dataGridView1.Columns[9].Width = 70;
+            dataGridView1.Columns[10].Width = 90;
+            dataGridView1.Columns[11].Width = 90;
+            foreach (DataGridViewColumn item in this.dataGridView1.Columns)
+            {
+                item.DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
+                item.SortMode = DataGridViewColumnSortMode.NotSortable;
             }
 
+            dataGridView1.Font = new Font("微软雅黑", 9);
+            DataGridViewCellStyle headerStyle = new DataGridViewCellStyle();
+
+            headerStyle.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleCenter;
+
+            this.dataGridView1.ColumnHeadersDefaultCellStyle = headerStyle;
         }
 
 
@@ -363,24 +379,24 @@ namespace WindowsFormsApp3
                 //    }
 
 
-                List<float> l_fre = new List<float>();  //摆频
-                List<float> l_ran = new List<float>();  //摆幅
+                List<float> l_X = new List<float>();  //TCP左右
+                List<float> l_Z = new List<float>();  //TCP上下
                 for (int m = 0; m < piles; m++)
                 {
                     for (int n = 0; n < mylayer[m].get_pass(); n++)
                     {
-                        l_fre.Add(Convert.ToSingle(mylayer[m].mypass[n].get_frequency()));
-                        l_ran.Add(Convert.ToSingle(mylayer[m].mypass[n].get_range()));
+                        l_X.Add(Convert.ToSingle(mylayer[m].mypass[n].get_X()));
+                        l_Z.Add(Convert.ToSingle(mylayer[m].mypass[n].get_Z()));
                     }
                 }
 
                 for (int v = 0; v < sum_pass * 2; v = v + 2)
                 {
-                    sngValues[v] = l_fre[v / 2];
-                    sngValues[v + 1] = l_ran[v / 2];
+                    sngValues[v] = l_X[v / 2];
+                    sngValues[v + 1] = l_Z[v / 2];
                 }
 
-                Console.WriteLine(sngValues[14]);
+                //Console.WriteLine(sngValues[14]);
 
 
                 if (mobjNumReg2.SetValues(0, sngValues, sum_pass * 2) == false)
@@ -397,37 +413,37 @@ namespace WindowsFormsApp3
 
             //写入位置变量寄存器
             //int intRand = 0;
-            int ii = 0;
+            //int ii = 0;
             
-            List<Array> sng = new List<Array>();
-            for(int jj = 0; jj <sum_pass; jj++)
-            {
-                sng.Add(new float[9]);
-            }
+            //List<Array> sng = new List<Array>();
+            //for(int jj = 0; jj <sum_pass; jj++)
+            //{
+            //    sng.Add(new float[9]);
+            //}
 
-            for (int mm = 0; mm < piles; mm++)
-            {
-                for (int nn = 0; nn < mylayer[mm].get_pass(); nn++)
-                {
-                    sng[mm].SetValue(Convert.ToSingle(mylayer[mm].mypass[nn].get_X()), 0);  //TCP左右
-                    sng[mm].SetValue(Convert.ToSingle(mylayer[mm].mypass[nn].get_Z()), 2);  //TCP上下
-                    sng[mm].SetValue(Convert.ToSingle(mylayer[mm].mypass[nn].get_P()), 4);  //倾角
-                }
-            }
+            //for (int mm = 0; mm < piles; mm++)
+            //{
+            //    for (int nn = 0; nn < mylayer[mm].get_pass(); nn++)
+            //    {
+            //        sng[mm].SetValue(Convert.ToSingle(mylayer[mm].mypass[nn].get_X()), 0);  //TCP左右
+            //        sng[mm].SetValue(Convert.ToSingle(mylayer[mm].mypass[nn].get_Z()), 2);  //TCP上下
+            //        sng[mm].SetValue(Convert.ToSingle(mylayer[mm].mypass[nn].get_P()), 4);  //倾角
+            //    }
+            //}
 
-            //Array sngArray = new float[9];
-            Array intConfig = new short[7];
+            ////Array sngArray = new float[9];
+            //Array intConfig = new short[7];
 
-            {
-                for (ii = mobjPosReg.StartIndex; ii <= mobjPosReg.EndIndex; ii++)
-                {
-                    intConfig.SetValue((short)ii, 4);
-                    intConfig.SetValue((short)ii, 5);
-                    intConfig.SetValue((short)ii, 6);
-                    Array sngArray = sng[ii];
-                    mobjPosReg.SetValueXyzwpr(ii, ref sngArray, ref intConfig, -1, -1);
-                }
-            }
+            //{
+            //    for (ii = mobjPosReg.StartIndex; ii <= mobjPosReg.EndIndex; ii++)
+            //    {
+            //        intConfig.SetValue((short)ii, 4);
+            //        intConfig.SetValue((short)ii, 5);
+            //        intConfig.SetValue((short)ii, 6);
+            //        Array sngArray = sng[ii];
+            //        mobjPosReg.SetValueXyzwpr(ii, ref sngArray, ref intConfig, -1, -1);
+            //    }
+            //}
 
 
         }
@@ -453,7 +469,7 @@ namespace WindowsFormsApp3
             SQLiteConnection connection = new SQLiteConnection(connectionstring);
             connection.Open();
             //选择所需参数
-            string sql = "SELECT layer, pass, X, Z, P, extension, current, speed, frequency, range, time FROM welding WHERE height = {0} AND angle = {1} AND gap = {2} AND edge = {3} AND mode = {4}";
+            string sql = "SELECT layer, pass, X, Z, P, extension, current, speed, frequency, range, time_l, time_r FROM welding WHERE height = {0} AND angle = {1} AND gap = {2} AND edge = {3} AND mode = {4}";
             string s = string.Format(sql, height, angle, gap, edge, mode);
             Console.WriteLine(s);
             SQLiteDataAdapter da = new SQLiteDataAdapter(s, connection);
@@ -475,7 +491,7 @@ namespace WindowsFormsApp3
                 
                 int j = Convert.ToInt32(d1.Rows[i]["layer"]) - 1;
                 double d = Convert.ToDouble(d1.Rows[i]["speed"]);
-                Pass pass = new Pass(Convert.ToDouble(d1.Rows[i]["current"]), d, Convert.ToDouble(d1.Rows[i]["frequency"]), Convert.ToDouble(d1.Rows[i]["range"]), Convert.ToDouble(d1.Rows[i]["time"]), Convert.ToDouble(d1.Rows[i]["X"]), Convert.ToDouble(d1.Rows[i]["Z"]), Convert.ToDouble(d1.Rows[i]["P"]), Convert.ToDouble(d1.Rows[i]["extension"]));                
+                Pass pass = new Pass(Convert.ToDouble(d1.Rows[i]["current"]), d, Convert.ToDouble(d1.Rows[i]["frequency"]), Convert.ToDouble(d1.Rows[i]["range"]), Convert.ToDouble(d1.Rows[i]["time_l"]), Convert.ToDouble(d1.Rows[i]["time_r"]), Convert.ToDouble(d1.Rows[i]["X"]), Convert.ToDouble(d1.Rows[i]["Z"]), Convert.ToDouble(d1.Rows[i]["P"]), Convert.ToDouble(d1.Rows[i]["extension"]));                
                 mylayer[j].mypass.Add(pass);
                 mylayer[j].set_layer(j + 1);
                 
@@ -503,9 +519,10 @@ namespace WindowsFormsApp3
         //清屏
         private void button5_Click(object sender, EventArgs e)
         {
-
             Graphics g = pictureBox1.CreateGraphics();
-            g.Clear(Color.White);
+            g.Clear(Color.LightSteelBlue);
+
+
         }
 
         //显示图像
@@ -567,13 +584,29 @@ namespace WindowsFormsApp3
             double length_1 = 250;
             double gap_1 = 10;
             double angle_1 = 90 - angle / 2;
-            PointF p1 = new PointF(80, 50);
-            PointF p2 = new PointF(Convert.ToSingle(height_2 / Math.Tan(angle_1 * PI / 180) - length_1) + 80, 50);
-            PointF p3 = new PointF(Convert.ToSingle(height_2 / Math.Tan(angle_1 * PI / 180) - length_1) + 80, 50 +Convert.ToSingle(height_0));
-            PointF p4 = new PointF(Convert.ToSingle(height_2 / Math.Tan(angle_1 * PI / 180)) + 80, 50 + Convert.ToSingle(height_0));
-            PointF p5 = new PointF(Convert.ToSingle(height_2 / Math.Tan(angle_1 * PI / 180)) + 80, 50 + Convert.ToSingle(height_2));
-            PointF p6 = new PointF(80, 50);
-            PointF[] P = new PointF[6] {p1, p2, p3, p4, p5, p6};
+            PointF p1, p2, p3, p4, p5, p6;
+            if (angle == 120)
+            {
+                p1 = new PointF(80, 50);
+                p2 = new PointF(Convert.ToSingle(height_2 / Math.Tan(angle_1 * PI / 180) - length_1) + 80, 50);
+                p3 = new PointF(Convert.ToSingle(height_2 / Math.Tan(angle_1 * PI / 180) - length_1) + 80, 50 + Convert.ToSingle(height_0));
+                p4 = new PointF(Convert.ToSingle(height_2 / Math.Tan(angle_1 * PI / 180)) + 80, 50 + Convert.ToSingle(height_0));
+                p5 = new PointF(Convert.ToSingle(height_2 / Math.Tan(angle_1 * PI / 180)) + 80, 50 + Convert.ToSingle(height_2));
+                p6 = new PointF(80, 50);
+                
+            }
+            else 
+            {
+                p1 = new PointF(160, 50);
+                p2 = new PointF(Convert.ToSingle(height_2 / Math.Tan(angle_1 * PI / 180) - length_1) + 160, 50);
+                p3 = new PointF(Convert.ToSingle(height_2 / Math.Tan(angle_1 * PI / 180) - length_1) + 160, 50 + Convert.ToSingle(height_0));
+                p4 = new PointF(Convert.ToSingle(height_2 / Math.Tan(angle_1 * PI / 180)) + 160, 50 + Convert.ToSingle(height_0));
+                p5 = new PointF(Convert.ToSingle(height_2 / Math.Tan(angle_1 * PI / 180)) + 160, 50 + Convert.ToSingle(height_2));
+                p6 = new PointF(160, 50);
+                
+            }
+
+            PointF[] P = new PointF[6] { p1, p2, p3, p4, p5, p6 };
             return P;
         }
 
@@ -588,12 +621,27 @@ namespace WindowsFormsApp3
             double length_1 = 250;
             double gap_1 = 10;
             double angle_1 = 90 - angle / 2;
-            PointF p1 = new PointF(80 + Convert.ToSingle(2 * height_2 / Math.Tan(angle_1 * PI / 180) + gap_1), 50);
-            PointF p2 = new PointF(Convert.ToSingle(height_2 / Math.Tan(angle_1 * PI / 180) + gap_1 + length_1) + 80, 50);
-            PointF p3 = new PointF(Convert.ToSingle(height_2 / Math.Tan(angle_1 * PI / 180) + gap_1 + length_1) + 80, 50 + Convert.ToSingle(height_0));
-            PointF p4 = new PointF(Convert.ToSingle(height_2 / Math.Tan(angle_1 * PI / 180) + gap_1) + 80, 50 + Convert.ToSingle(height_0));
-            PointF p5 = new PointF(Convert.ToSingle(height_2 / Math.Tan(angle_1 * PI / 180) + gap_1) + 80, 50 + Convert.ToSingle(height_2));
-            PointF p6 = new PointF(80 + Convert.ToSingle(2 * height_2 / Math.Tan(angle_1 * PI / 180) + gap_1), 50);
+            PointF p1, p2, p3, p4, p5, p6;
+            if (angle == 120)
+            {
+                p1 = new PointF(80 + Convert.ToSingle(2 * height_2 / Math.Tan(angle_1 * PI / 180) + gap_1), 50);
+                p2 = new PointF(Convert.ToSingle(height_2 / Math.Tan(angle_1 * PI / 180) + gap_1 + length_1) + 80, 50);
+                p3 = new PointF(Convert.ToSingle(height_2 / Math.Tan(angle_1 * PI / 180) + gap_1 + length_1) + 80, 50 + Convert.ToSingle(height_0));
+                p4 = new PointF(Convert.ToSingle(height_2 / Math.Tan(angle_1 * PI / 180) + gap_1) + 80, 50 + Convert.ToSingle(height_0));
+                p5 = new PointF(Convert.ToSingle(height_2 / Math.Tan(angle_1 * PI / 180) + gap_1) + 80, 50 + Convert.ToSingle(height_2));
+                p6 = new PointF(80 + Convert.ToSingle(2 * height_2 / Math.Tan(angle_1 * PI / 180) + gap_1), 50);
+
+            }
+            else
+            {
+                p1 = new PointF(160 + Convert.ToSingle(2 * height_2 / Math.Tan(angle_1 * PI / 180) + gap_1), 50);
+                p2 = new PointF(Convert.ToSingle(height_2 / Math.Tan(angle_1 * PI / 180) + gap_1 + length_1) + 160, 50);
+                p3 = new PointF(Convert.ToSingle(height_2 / Math.Tan(angle_1 * PI / 180) + gap_1 + length_1) + 160, 50 + Convert.ToSingle(height_0));
+                p4 = new PointF(Convert.ToSingle(height_2 / Math.Tan(angle_1 * PI / 180) + gap_1) + 160, 50 + Convert.ToSingle(height_0));
+                p5 = new PointF(Convert.ToSingle(height_2 / Math.Tan(angle_1 * PI / 180) + gap_1) + 160, 50 + Convert.ToSingle(height_2));
+                p6 = new PointF(160 + Convert.ToSingle(2 * height_2 / Math.Tan(angle_1 * PI / 180) + gap_1), 50);
+
+            }
             PointF[] P = new PointF[6] { p1, p2, p3, p4, p5, p6 };
             return P;
         }
@@ -606,13 +654,29 @@ namespace WindowsFormsApp3
             double height_2 = 120 - 10;
             double gap_1 = 10;
             double angle_1 = 90 - angle / 2;
-            PointF p1 = new PointF(80 + Convert.ToSingle(height_2 / Math.Tan(angle_1 * PI / 180)), 50 + Convert.ToSingle(height_2));
-            PointF p2 = new PointF(80 + Convert.ToSingle(height_2 / Math.Tan(angle_1 * PI / 180)), 50 + Convert.ToSingle(height_0));
-            PointF p3 = new PointF(80 + Convert.ToSingle(height_2 / Math.Tan(angle_1 * PI / 180) + gap_1), 50 + Convert.ToSingle(height_0));
-            PointF p4 = new PointF(80 + Convert.ToSingle(height_2 / Math.Tan(angle_1 * PI / 180) + gap_1), 50 + Convert.ToSingle(height_2));
-            PointF p5 = new PointF(80 + Convert.ToSingle(2 * height_2 / Math.Tan(angle_1 * PI / 180) + gap_1 - (piles - 1) * height_2 / (piles * Math.Tan(angle_1 * PI / 180))), 50 + Convert.ToSingle(height_2 - 1 * height_2 / piles));
-            PointF p6 = new PointF(80 + Convert.ToSingle((piles - 1) * height_2 / (piles * Math.Tan(angle_1 * PI / 180))), 50 + Convert.ToSingle(height_2 - 1 * height_2 / piles));
-            PointF p7 = new PointF(80 + Convert.ToSingle(height_2 / Math.Tan(angle_1 * PI / 180)), 50 + Convert.ToSingle(height_2));
+            PointF p1, p2, p3, p4, p5, p6, p7;
+            if (angle == 120)
+            {
+                p1 = new PointF(80 + Convert.ToSingle(height_2 / Math.Tan(angle_1 * PI / 180)), 50 + Convert.ToSingle(height_2));
+                p2 = new PointF(80 + Convert.ToSingle(height_2 / Math.Tan(angle_1 * PI / 180)), 50 + Convert.ToSingle(height_0));
+                p3 = new PointF(80 + Convert.ToSingle(height_2 / Math.Tan(angle_1 * PI / 180) + gap_1), 50 + Convert.ToSingle(height_0));
+                p4 = new PointF(80 + Convert.ToSingle(height_2 / Math.Tan(angle_1 * PI / 180) + gap_1), 50 + Convert.ToSingle(height_2));
+                p5 = new PointF(80 + Convert.ToSingle(2 * height_2 / Math.Tan(angle_1 * PI / 180) + gap_1 - (piles - 1) * height_2 / (piles * Math.Tan(angle_1 * PI / 180))), 50 + Convert.ToSingle(height_2 - 1 * height_2 / piles));
+                p6 = new PointF(80 + Convert.ToSingle((piles - 1) * height_2 / (piles * Math.Tan(angle_1 * PI / 180))), 50 + Convert.ToSingle(height_2 - 1 * height_2 / piles));
+                p7 = new PointF(80 + Convert.ToSingle(height_2 / Math.Tan(angle_1 * PI / 180)), 50 + Convert.ToSingle(height_2));
+
+            }
+            else
+            {
+                p1 = new PointF(160 + Convert.ToSingle(height_2 / Math.Tan(angle_1 * PI / 180)), 50 + Convert.ToSingle(height_2));
+                p2 = new PointF(160 + Convert.ToSingle(height_2 / Math.Tan(angle_1 * PI / 180)), 50 + Convert.ToSingle(height_0));
+                p3 = new PointF(160 + Convert.ToSingle(height_2 / Math.Tan(angle_1 * PI / 180) + gap_1), 50 + Convert.ToSingle(height_0));
+                p4 = new PointF(160 + Convert.ToSingle(height_2 / Math.Tan(angle_1 * PI / 180) + gap_1), 50 + Convert.ToSingle(height_2));
+                p5 = new PointF(160 + Convert.ToSingle(2 * height_2 / Math.Tan(angle_1 * PI / 180) + gap_1 - (piles - 1) * height_2 / (piles * Math.Tan(angle_1 * PI / 180))), 50 + Convert.ToSingle(height_2 - 1 * height_2 / piles));
+                p6 = new PointF(160 + Convert.ToSingle((piles - 1) * height_2 / (piles * Math.Tan(angle_1 * PI / 180))), 50 + Convert.ToSingle(height_2 - 1 * height_2 / piles));
+                p7 = new PointF(160 + Convert.ToSingle(height_2 / Math.Tan(angle_1 * PI / 180)), 50 + Convert.ToSingle(height_2));
+
+            }
             mylayer[0].mypass[0].pots = new PointF[7] { p1, p2, p3, p4, p5, p6, p7 };
         }
 
@@ -626,32 +690,73 @@ namespace WindowsFormsApp3
             //左侧填充
             for (int j = 0; j < (p - 1) / 2; ++j)
             {
-                PointF p1 = new PointF(80 + Convert.ToSingle(height_2 / Math.Tan(angle_1 * PI / 180) - (l - 1) * height_2 / (piles * Math.Tan(angle_1 * PI / 180)) + (j + 1) * ((gap_1 + 2 * (l - 1) * height_2 / (piles * Math.Tan(angle_1 * PI / 180))) / p)), 50 + Convert.ToSingle(height_2 - (l - 1) * height_2 / piles));
-                PointF p2 = new PointF(80 + Convert.ToSingle(height_2 / Math.Tan(angle_1 * PI / 180) - (l - 1) * height_2 / (piles * Math.Tan(angle_1 * PI / 180)) + (j + 1) * ((gap_1 + 2 * (l - 1) * height_2 / (piles * Math.Tan(angle_1 * PI / 180))) / p) - height_2 / (piles * Math.Tan(angle_1 * PI / 180))), 50 + Convert.ToSingle(height_2 - l * height_2 / piles));
-                PointF p3 = new PointF(80 + Convert.ToSingle(height_2 / Math.Tan(angle_1 * PI / 180) - (l - 1) * height_2 / (piles * Math.Tan(angle_1 * PI / 180)) + (j) * ((gap_1 + 2 * (l - 1) * height_2 / (piles * Math.Tan(angle_1 * PI / 180))) / p) - height_2 / (piles * Math.Tan(angle_1 * PI / 180))), 50 + Convert.ToSingle(height_2 - l * height_2 / piles));
-                PointF p4 = new PointF(80 + Convert.ToSingle(height_2 / Math.Tan(angle_1 * PI / 180) - (l - 1) * height_2 / (piles * Math.Tan(angle_1 * PI / 180)) + (j) * ((gap_1 + 2 * (l - 1) * height_2 / (piles * Math.Tan(angle_1 * PI / 180))) / p)), 50 + Convert.ToSingle(height_2 - (l - 1) * height_2 / piles));
-                PointF p5 = new PointF(80 + Convert.ToSingle(height_2 / Math.Tan(angle_1 * PI / 180) - (l - 1) * height_2 / (piles * Math.Tan(angle_1 * PI / 180)) + (j + 1) * ((gap_1 + 2 * (l - 1) * height_2 / (piles * Math.Tan(angle_1 * PI / 180))) / p)), 50 + Convert.ToSingle(height_2 - (l - 1) * height_2 / piles));
-                mylayer[l - 1].mypass[j].pots = new PointF[5] { p1, p2, p3, p4, p5 };
+                if (angle == 120)
+                {
+                    PointF p1 = new PointF(80 + Convert.ToSingle(height_2 / Math.Tan(angle_1 * PI / 180) - (l - 1) * height_2 / (piles * Math.Tan(angle_1 * PI / 180)) + (j + 1) * ((gap_1 + 2 * (l - 1) * height_2 / (piles * Math.Tan(angle_1 * PI / 180))) / p)), 50 + Convert.ToSingle(height_2 - (l - 1) * height_2 / piles));
+                    PointF p2 = new PointF(80 + Convert.ToSingle(height_2 / Math.Tan(angle_1 * PI / 180) - (l - 1) * height_2 / (piles * Math.Tan(angle_1 * PI / 180)) + (j + 1) * ((gap_1 + 2 * (l - 1) * height_2 / (piles * Math.Tan(angle_1 * PI / 180))) / p) - height_2 / (piles * Math.Tan(angle_1 * PI / 180))), 50 + Convert.ToSingle(height_2 - l * height_2 / piles));
+                    PointF p3 = new PointF(80 + Convert.ToSingle(height_2 / Math.Tan(angle_1 * PI / 180) - (l - 1) * height_2 / (piles * Math.Tan(angle_1 * PI / 180)) + (j) * ((gap_1 + 2 * (l - 1) * height_2 / (piles * Math.Tan(angle_1 * PI / 180))) / p) - height_2 / (piles * Math.Tan(angle_1 * PI / 180))), 50 + Convert.ToSingle(height_2 - l * height_2 / piles));
+                    PointF p4 = new PointF(80 + Convert.ToSingle(height_2 / Math.Tan(angle_1 * PI / 180) - (l - 1) * height_2 / (piles * Math.Tan(angle_1 * PI / 180)) + (j) * ((gap_1 + 2 * (l - 1) * height_2 / (piles * Math.Tan(angle_1 * PI / 180))) / p)), 50 + Convert.ToSingle(height_2 - (l - 1) * height_2 / piles));
+                    PointF p5 = new PointF(80 + Convert.ToSingle(height_2 / Math.Tan(angle_1 * PI / 180) - (l - 1) * height_2 / (piles * Math.Tan(angle_1 * PI / 180)) + (j + 1) * ((gap_1 + 2 * (l - 1) * height_2 / (piles * Math.Tan(angle_1 * PI / 180))) / p)), 50 + Convert.ToSingle(height_2 - (l - 1) * height_2 / piles));
+                    mylayer[l - 1].mypass[j].pots = new PointF[5] { p1, p2, p3, p4, p5 };
+                }
+                else
+                {
+                    PointF p1 = new PointF(160 + Convert.ToSingle(height_2 / Math.Tan(angle_1 * PI / 180) - (l - 1) * height_2 / (piles * Math.Tan(angle_1 * PI / 180)) + (j + 1) * ((gap_1 + 2 * (l - 1) * height_2 / (piles * Math.Tan(angle_1 * PI / 180))) / p)), 50 + Convert.ToSingle(height_2 - (l - 1) * height_2 / piles));
+                    PointF p2 = new PointF(160 + Convert.ToSingle(height_2 / Math.Tan(angle_1 * PI / 180) - (l - 1) * height_2 / (piles * Math.Tan(angle_1 * PI / 180)) + (j + 1) * ((gap_1 + 2 * (l - 1) * height_2 / (piles * Math.Tan(angle_1 * PI / 180))) / p) - height_2 / (piles * Math.Tan(angle_1 * PI / 180))), 50 + Convert.ToSingle(height_2 - l * height_2 / piles));
+                    PointF p3 = new PointF(160 + Convert.ToSingle(height_2 / Math.Tan(angle_1 * PI / 180) - (l - 1) * height_2 / (piles * Math.Tan(angle_1 * PI / 180)) + (j) * ((gap_1 + 2 * (l - 1) * height_2 / (piles * Math.Tan(angle_1 * PI / 180))) / p) - height_2 / (piles * Math.Tan(angle_1 * PI / 180))), 50 + Convert.ToSingle(height_2 - l * height_2 / piles));
+                    PointF p4 = new PointF(160 + Convert.ToSingle(height_2 / Math.Tan(angle_1 * PI / 180) - (l - 1) * height_2 / (piles * Math.Tan(angle_1 * PI / 180)) + (j) * ((gap_1 + 2 * (l - 1) * height_2 / (piles * Math.Tan(angle_1 * PI / 180))) / p)), 50 + Convert.ToSingle(height_2 - (l - 1) * height_2 / piles));
+                    PointF p5 = new PointF(160 + Convert.ToSingle(height_2 / Math.Tan(angle_1 * PI / 180) - (l - 1) * height_2 / (piles * Math.Tan(angle_1 * PI / 180)) + (j + 1) * ((gap_1 + 2 * (l - 1) * height_2 / (piles * Math.Tan(angle_1 * PI / 180))) / p)), 50 + Convert.ToSingle(height_2 - (l - 1) * height_2 / piles));
+                    mylayer[l - 1].mypass[j].pots = new PointF[5] { p1, p2, p3, p4, p5 };
+                }
+                
             }
 
             //右侧填充
             for (int j = (p + 1) / 2; j < p; ++j)
             {
-                PointF p1 = new PointF(80 + Convert.ToSingle(height_2 / Math.Tan(angle_1 * PI / 180) - (l - 1) * height_2 / (piles * Math.Tan(angle_1 * PI / 180)) + j * ((gap_1 + 2 * (l - 1) * height_2 / (piles * Math.Tan(angle_1 * PI / 180))) / p)), 50 + Convert.ToSingle(height_2 - (l - 1) * height_2 / piles));
-                PointF p2 = new PointF(80 + Convert.ToSingle(height_2 / Math.Tan(angle_1 * PI / 180) - (l - 1) * height_2 / (piles * Math.Tan(angle_1 * PI / 180)) + j * ((gap_1 + 2 * (l - 1) * height_2 / (piles * Math.Tan(angle_1 * PI / 180))) / p) + height_2 / (piles * Math.Tan(angle_1 * PI / 180))), 50 + Convert.ToSingle(height_2 - l * height_2 / piles));
-                PointF p3 = new PointF(80 + Convert.ToSingle(height_2 / Math.Tan(angle_1 * PI / 180) - (l - 1) * height_2 / (piles * Math.Tan(angle_1 * PI / 180)) + (j + 1) * ((gap_1 + 2 * (l - 1) * height_2 / (piles * Math.Tan(angle_1 * PI / 180))) / p) + height_2 / (piles * Math.Tan(angle_1 * PI / 180))), 50 + Convert.ToSingle(height_2 - l * height_2 / piles));
-                PointF p4 = new PointF(80 + Convert.ToSingle(height_2 / Math.Tan(angle_1 * PI / 180) - (l - 1) * height_2 / (piles * Math.Tan(angle_1 * PI / 180)) + (j + 1) * ((gap_1 + 2 * (l - 1) * height_2 / (piles * Math.Tan(angle_1 * PI / 180))) / p)), 50 + Convert.ToSingle(height_2 - (l - 1) * height_2 / piles));
-                PointF p5 = new PointF(80 + Convert.ToSingle(height_2 / Math.Tan(angle_1 * PI / 180) - (l - 1) * height_2 / (piles * Math.Tan(angle_1 * PI / 180)) + j * ((gap_1 + 2 * (l - 1) * height_2 / (piles * Math.Tan(angle_1 * PI / 180))) / p)), 50 + Convert.ToSingle(height_2 - (l - 1) * height_2 / piles));
-                mylayer[l - 1].mypass[j].pots = new PointF[5] { p1, p2, p3, p4, p5 };
+                if (angle == 120)
+                {
+                    PointF p1 = new PointF(80 + Convert.ToSingle(height_2 / Math.Tan(angle_1 * PI / 180) - (l - 1) * height_2 / (piles * Math.Tan(angle_1 * PI / 180)) + j * ((gap_1 + 2 * (l - 1) * height_2 / (piles * Math.Tan(angle_1 * PI / 180))) / p)), 50 + Convert.ToSingle(height_2 - (l - 1) * height_2 / piles));
+                    PointF p2 = new PointF(80 + Convert.ToSingle(height_2 / Math.Tan(angle_1 * PI / 180) - (l - 1) * height_2 / (piles * Math.Tan(angle_1 * PI / 180)) + j * ((gap_1 + 2 * (l - 1) * height_2 / (piles * Math.Tan(angle_1 * PI / 180))) / p) + height_2 / (piles * Math.Tan(angle_1 * PI / 180))), 50 + Convert.ToSingle(height_2 - l * height_2 / piles));
+                    PointF p3 = new PointF(80 + Convert.ToSingle(height_2 / Math.Tan(angle_1 * PI / 180) - (l - 1) * height_2 / (piles * Math.Tan(angle_1 * PI / 180)) + (j + 1) * ((gap_1 + 2 * (l - 1) * height_2 / (piles * Math.Tan(angle_1 * PI / 180))) / p) + height_2 / (piles * Math.Tan(angle_1 * PI / 180))), 50 + Convert.ToSingle(height_2 - l * height_2 / piles));
+                    PointF p4 = new PointF(80 + Convert.ToSingle(height_2 / Math.Tan(angle_1 * PI / 180) - (l - 1) * height_2 / (piles * Math.Tan(angle_1 * PI / 180)) + (j + 1) * ((gap_1 + 2 * (l - 1) * height_2 / (piles * Math.Tan(angle_1 * PI / 180))) / p)), 50 + Convert.ToSingle(height_2 - (l - 1) * height_2 / piles));
+                    PointF p5 = new PointF(80 + Convert.ToSingle(height_2 / Math.Tan(angle_1 * PI / 180) - (l - 1) * height_2 / (piles * Math.Tan(angle_1 * PI / 180)) + j * ((gap_1 + 2 * (l - 1) * height_2 / (piles * Math.Tan(angle_1 * PI / 180))) / p)), 50 + Convert.ToSingle(height_2 - (l - 1) * height_2 / piles));
+                    mylayer[l - 1].mypass[j].pots = new PointF[5] { p1, p2, p3, p4, p5 };
+
+                }
+                else
+                {
+                    PointF p1 = new PointF(160 + Convert.ToSingle(height_2 / Math.Tan(angle_1 * PI / 180) - (l - 1) * height_2 / (piles * Math.Tan(angle_1 * PI / 180)) + j * ((gap_1 + 2 * (l - 1) * height_2 / (piles * Math.Tan(angle_1 * PI / 180))) / p)), 50 + Convert.ToSingle(height_2 - (l - 1) * height_2 / piles));
+                    PointF p2 = new PointF(160 + Convert.ToSingle(height_2 / Math.Tan(angle_1 * PI / 180) - (l - 1) * height_2 / (piles * Math.Tan(angle_1 * PI / 180)) + j * ((gap_1 + 2 * (l - 1) * height_2 / (piles * Math.Tan(angle_1 * PI / 180))) / p) + height_2 / (piles * Math.Tan(angle_1 * PI / 180))), 50 + Convert.ToSingle(height_2 - l * height_2 / piles));
+                    PointF p3 = new PointF(160 + Convert.ToSingle(height_2 / Math.Tan(angle_1 * PI / 180) - (l - 1) * height_2 / (piles * Math.Tan(angle_1 * PI / 180)) + (j + 1) * ((gap_1 + 2 * (l - 1) * height_2 / (piles * Math.Tan(angle_1 * PI / 180))) / p) + height_2 / (piles * Math.Tan(angle_1 * PI / 180))), 50 + Convert.ToSingle(height_2 - l * height_2 / piles));
+                    PointF p4 = new PointF(160 + Convert.ToSingle(height_2 / Math.Tan(angle_1 * PI / 180) - (l - 1) * height_2 / (piles * Math.Tan(angle_1 * PI / 180)) + (j + 1) * ((gap_1 + 2 * (l - 1) * height_2 / (piles * Math.Tan(angle_1 * PI / 180))) / p)), 50 + Convert.ToSingle(height_2 - (l - 1) * height_2 / piles));
+                    PointF p5 = new PointF(160 + Convert.ToSingle(height_2 / Math.Tan(angle_1 * PI / 180) - (l - 1) * height_2 / (piles * Math.Tan(angle_1 * PI / 180)) + j * ((gap_1 + 2 * (l - 1) * height_2 / (piles * Math.Tan(angle_1 * PI / 180))) / p)), 50 + Convert.ToSingle(height_2 - (l - 1) * height_2 / piles));
+                    mylayer[l - 1].mypass[j].pots = new PointF[5] { p1, p2, p3, p4, p5 };
+
+                }
             }
 
             //中间填充
-            PointF pa = new PointF(80 + Convert.ToSingle(height_2 / Math.Tan(angle_1 * PI / 180) - (l - 1) * height_2 / (piles * Math.Tan(angle_1 * PI / 180)) + ((p - 3) / 2 + 1) * ((gap_1 + 2 * (l - 1) * height_2 / (piles * Math.Tan(angle_1 * PI / 180))) / p)), 50 + Convert.ToSingle(height_2 - (l - 1) * height_2 / piles));
-            PointF pb = new PointF(80 + Convert.ToSingle(height_2 / Math.Tan(angle_1 * PI / 180) - (l - 1) * height_2 / (piles * Math.Tan(angle_1 * PI / 180)) + ((p - 3) / 2 + 1) * ((gap_1 + 2 * (l - 1) * height_2 / (piles * Math.Tan(angle_1 * PI / 180))) / p) - height_2 / (piles * Math.Tan(angle_1 * PI / 180))), 50 + Convert.ToSingle(height_2 - l * height_2 / piles));
-            PointF pc = new PointF(80 + Convert.ToSingle(height_2 / Math.Tan(angle_1 * PI / 180) - (l - 1) * height_2 / (piles * Math.Tan(angle_1 * PI / 180)) + ((p + 1) / 2) * ((gap_1 + 2 * (l - 1) * height_2 / (piles * Math.Tan(angle_1 * PI / 180))) / p) + height_2 / (piles * Math.Tan(angle_1 * PI / 180))), 50 + Convert.ToSingle(height_2 - l * height_2 / piles));
-            PointF pd = new PointF(80 + Convert.ToSingle(height_2 / Math.Tan(angle_1 * PI / 180) - (l - 1) * height_2 / (piles * Math.Tan(angle_1 * PI / 180)) + ((p + 1) / 2) * ((gap_1 + 2 * (l - 1) * height_2 / (piles * Math.Tan(angle_1 * PI / 180))) / p)), 50 + Convert.ToSingle(height_2 - (l - 1) * height_2 / piles));
-            PointF pe = pa;
-            mylayer[l - 1].mypass[(p - 1) / 2].pots = new PointF[5] { pa, pb, pc, pd, pe};
+            if (angle == 120)
+            {
+                PointF pa = new PointF(80 + Convert.ToSingle(height_2 / Math.Tan(angle_1 * PI / 180) - (l - 1) * height_2 / (piles * Math.Tan(angle_1 * PI / 180)) + ((p - 3) / 2 + 1) * ((gap_1 + 2 * (l - 1) * height_2 / (piles * Math.Tan(angle_1 * PI / 180))) / p)), 50 + Convert.ToSingle(height_2 - (l - 1) * height_2 / piles));
+                PointF pb = new PointF(80 + Convert.ToSingle(height_2 / Math.Tan(angle_1 * PI / 180) - (l - 1) * height_2 / (piles * Math.Tan(angle_1 * PI / 180)) + ((p - 3) / 2 + 1) * ((gap_1 + 2 * (l - 1) * height_2 / (piles * Math.Tan(angle_1 * PI / 180))) / p) - height_2 / (piles * Math.Tan(angle_1 * PI / 180))), 50 + Convert.ToSingle(height_2 - l * height_2 / piles));
+                PointF pc = new PointF(80 + Convert.ToSingle(height_2 / Math.Tan(angle_1 * PI / 180) - (l - 1) * height_2 / (piles * Math.Tan(angle_1 * PI / 180)) + ((p + 1) / 2) * ((gap_1 + 2 * (l - 1) * height_2 / (piles * Math.Tan(angle_1 * PI / 180))) / p) + height_2 / (piles * Math.Tan(angle_1 * PI / 180))), 50 + Convert.ToSingle(height_2 - l * height_2 / piles));
+                PointF pd = new PointF(80 + Convert.ToSingle(height_2 / Math.Tan(angle_1 * PI / 180) - (l - 1) * height_2 / (piles * Math.Tan(angle_1 * PI / 180)) + ((p + 1) / 2) * ((gap_1 + 2 * (l - 1) * height_2 / (piles * Math.Tan(angle_1 * PI / 180))) / p)), 50 + Convert.ToSingle(height_2 - (l - 1) * height_2 / piles));
+                PointF pe = pa;
+                mylayer[l - 1].mypass[(p - 1) / 2].pots = new PointF[5] { pa, pb, pc, pd, pe };
+
+            }
+            else
+            {
+                PointF pa = new PointF(160 + Convert.ToSingle(height_2 / Math.Tan(angle_1 * PI / 180) - (l - 1) * height_2 / (piles * Math.Tan(angle_1 * PI / 180)) + ((p - 3) / 2 + 1) * ((gap_1 + 2 * (l - 1) * height_2 / (piles * Math.Tan(angle_1 * PI / 180))) / p)), 50 + Convert.ToSingle(height_2 - (l - 1) * height_2 / piles));
+                PointF pb = new PointF(160 + Convert.ToSingle(height_2 / Math.Tan(angle_1 * PI / 180) - (l - 1) * height_2 / (piles * Math.Tan(angle_1 * PI / 180)) + ((p - 3) / 2 + 1) * ((gap_1 + 2 * (l - 1) * height_2 / (piles * Math.Tan(angle_1 * PI / 180))) / p) - height_2 / (piles * Math.Tan(angle_1 * PI / 180))), 50 + Convert.ToSingle(height_2 - l * height_2 / piles));
+                PointF pc = new PointF(160 + Convert.ToSingle(height_2 / Math.Tan(angle_1 * PI / 180) - (l - 1) * height_2 / (piles * Math.Tan(angle_1 * PI / 180)) + ((p + 1) / 2) * ((gap_1 + 2 * (l - 1) * height_2 / (piles * Math.Tan(angle_1 * PI / 180))) / p) + height_2 / (piles * Math.Tan(angle_1 * PI / 180))), 50 + Convert.ToSingle(height_2 - l * height_2 / piles));
+                PointF pd = new PointF(160 + Convert.ToSingle(height_2 / Math.Tan(angle_1 * PI / 180) - (l - 1) * height_2 / (piles * Math.Tan(angle_1 * PI / 180)) + ((p + 1) / 2) * ((gap_1 + 2 * (l - 1) * height_2 / (piles * Math.Tan(angle_1 * PI / 180))) / p)), 50 + Convert.ToSingle(height_2 - (l - 1) * height_2 / piles));
+                PointF pe = pa;
+                mylayer[l - 1].mypass[(p - 1) / 2].pots = new PointF[5] { pa, pb, pc, pd, pe };
+
+            }
 
         }
 
@@ -665,48 +770,105 @@ namespace WindowsFormsApp3
             //左侧填充
             for (int j = 0; j < p / 2; ++j)
             {
-                PointF p1 = new PointF(80 + Convert.ToSingle(height_2 / Math.Tan(angle_1 * PI / 180) - (l - 1) * height_2 / (piles * Math.Tan(angle_1 * PI / 180)) + (j + 1) * ((gap_1 + 2 * (l - 1) * height_2 / (piles * Math.Tan(angle_1 * PI / 180))) / p)), 50 + Convert.ToSingle(height_2 - (l - 1) * height_2 / piles));
-                PointF p2 = new PointF(80 + Convert.ToSingle(height_2 / Math.Tan(angle_1 * PI / 180) - (l - 1) * height_2 / (piles * Math.Tan(angle_1 * PI / 180)) + (j + 1) * ((gap_1 + 2 * (l - 1) * height_2 / (piles * Math.Tan(angle_1 * PI / 180))) / p) - height_2 / (piles * Math.Tan(angle_1 * PI / 180))), 50 + Convert.ToSingle(height_2 - l * height_2 / piles));
-                PointF p3 = new PointF(80 + Convert.ToSingle(height_2 / Math.Tan(angle_1 * PI / 180) - (l - 1) * height_2 / (piles * Math.Tan(angle_1 * PI / 180)) + (j) * ((gap_1 + 2 * (l - 1) * height_2 / (piles * Math.Tan(angle_1 * PI / 180))) / p) - height_2 / (piles * Math.Tan(angle_1 * PI / 180))), 50 + Convert.ToSingle(height_2 - l * height_2 / piles));
-                PointF p4 = new PointF(80 + Convert.ToSingle(height_2 / Math.Tan(angle_1 * PI / 180) - (l - 1) * height_2 / (piles * Math.Tan(angle_1 * PI / 180)) + (j) * ((gap_1 + 2 * (l - 1) * height_2 / (piles * Math.Tan(angle_1 * PI / 180))) / p)), 50 + Convert.ToSingle(height_2 - (l - 1) * height_2 / piles));
-                PointF p5 = new PointF(80 + Convert.ToSingle(height_2 / Math.Tan(angle_1 * PI / 180) - (l - 1) * height_2 / (piles * Math.Tan(angle_1 * PI / 180)) + (j + 1) * ((gap_1 + 2 * (l - 1) * height_2 / (piles * Math.Tan(angle_1 * PI / 180))) / p)), 50 + Convert.ToSingle(height_2 - (l - 1) * height_2 / piles));
-                mylayer[l - 1].mypass[j].pots = new PointF[5] { p1, p2, p3, p4, p5 };
+                if (angle == 120)
+                {
+                    PointF p1 = new PointF(80 + Convert.ToSingle(height_2 / Math.Tan(angle_1 * PI / 180) - (l - 1) * height_2 / (piles * Math.Tan(angle_1 * PI / 180)) + (j + 1) * ((gap_1 + 2 * (l - 1) * height_2 / (piles * Math.Tan(angle_1 * PI / 180))) / p)), 50 + Convert.ToSingle(height_2 - (l - 1) * height_2 / piles));
+                    PointF p2 = new PointF(80 + Convert.ToSingle(height_2 / Math.Tan(angle_1 * PI / 180) - (l - 1) * height_2 / (piles * Math.Tan(angle_1 * PI / 180)) + (j + 1) * ((gap_1 + 2 * (l - 1) * height_2 / (piles * Math.Tan(angle_1 * PI / 180))) / p) - height_2 / (piles * Math.Tan(angle_1 * PI / 180))), 50 + Convert.ToSingle(height_2 - l * height_2 / piles));
+                    PointF p3 = new PointF(80 + Convert.ToSingle(height_2 / Math.Tan(angle_1 * PI / 180) - (l - 1) * height_2 / (piles * Math.Tan(angle_1 * PI / 180)) + (j) * ((gap_1 + 2 * (l - 1) * height_2 / (piles * Math.Tan(angle_1 * PI / 180))) / p) - height_2 / (piles * Math.Tan(angle_1 * PI / 180))), 50 + Convert.ToSingle(height_2 - l * height_2 / piles));
+                    PointF p4 = new PointF(80 + Convert.ToSingle(height_2 / Math.Tan(angle_1 * PI / 180) - (l - 1) * height_2 / (piles * Math.Tan(angle_1 * PI / 180)) + (j) * ((gap_1 + 2 * (l - 1) * height_2 / (piles * Math.Tan(angle_1 * PI / 180))) / p)), 50 + Convert.ToSingle(height_2 - (l - 1) * height_2 / piles));
+                    PointF p5 = new PointF(80 + Convert.ToSingle(height_2 / Math.Tan(angle_1 * PI / 180) - (l - 1) * height_2 / (piles * Math.Tan(angle_1 * PI / 180)) + (j + 1) * ((gap_1 + 2 * (l - 1) * height_2 / (piles * Math.Tan(angle_1 * PI / 180))) / p)), 50 + Convert.ToSingle(height_2 - (l - 1) * height_2 / piles));
+                    mylayer[l - 1].mypass[j].pots = new PointF[5] { p1, p2, p3, p4, p5 };
+
+                }
+
+                else
+                {
+                    PointF p1 = new PointF(160 + Convert.ToSingle(height_2 / Math.Tan(angle_1 * PI / 180) - (l - 1) * height_2 / (piles * Math.Tan(angle_1 * PI / 180)) + (j + 1) * ((gap_1 + 2 * (l - 1) * height_2 / (piles * Math.Tan(angle_1 * PI / 180))) / p)), 50 + Convert.ToSingle(height_2 - (l - 1) * height_2 / piles));
+                    PointF p2 = new PointF(160 + Convert.ToSingle(height_2 / Math.Tan(angle_1 * PI / 180) - (l - 1) * height_2 / (piles * Math.Tan(angle_1 * PI / 180)) + (j + 1) * ((gap_1 + 2 * (l - 1) * height_2 / (piles * Math.Tan(angle_1 * PI / 180))) / p) - height_2 / (piles * Math.Tan(angle_1 * PI / 180))), 50 + Convert.ToSingle(height_2 - l * height_2 / piles));
+                    PointF p3 = new PointF(160 + Convert.ToSingle(height_2 / Math.Tan(angle_1 * PI / 180) - (l - 1) * height_2 / (piles * Math.Tan(angle_1 * PI / 180)) + (j) * ((gap_1 + 2 * (l - 1) * height_2 / (piles * Math.Tan(angle_1 * PI / 180))) / p) - height_2 / (piles * Math.Tan(angle_1 * PI / 180))), 50 + Convert.ToSingle(height_2 - l * height_2 / piles));
+                    PointF p4 = new PointF(160 + Convert.ToSingle(height_2 / Math.Tan(angle_1 * PI / 180) - (l - 1) * height_2 / (piles * Math.Tan(angle_1 * PI / 180)) + (j) * ((gap_1 + 2 * (l - 1) * height_2 / (piles * Math.Tan(angle_1 * PI / 180))) / p)), 50 + Convert.ToSingle(height_2 - (l - 1) * height_2 / piles));
+                    PointF p5 = new PointF(160 + Convert.ToSingle(height_2 / Math.Tan(angle_1 * PI / 180) - (l - 1) * height_2 / (piles * Math.Tan(angle_1 * PI / 180)) + (j + 1) * ((gap_1 + 2 * (l - 1) * height_2 / (piles * Math.Tan(angle_1 * PI / 180))) / p)), 50 + Convert.ToSingle(height_2 - (l - 1) * height_2 / piles));
+                    mylayer[l - 1].mypass[j].pots = new PointF[5] { p1, p2, p3, p4, p5 };
+
+                }
             }
 
             //右侧填充
             for (int j = (p + 2) / 2; j < p; ++j)
             {
-                PointF p1 = new PointF(80 + Convert.ToSingle(height_2 / Math.Tan(angle_1 * PI / 180) - (l - 1) * height_2 / (piles * Math.Tan(angle_1 * PI / 180)) + j * ((gap_1 + 2 * (l - 1) * height_2 / (piles * Math.Tan(angle_1 * PI / 180))) / p)), 50 + Convert.ToSingle(height_2 - (l - 1) * height_2 / piles));
-                PointF p2 = new PointF(80 + Convert.ToSingle(height_2 / Math.Tan(angle_1 * PI / 180) - (l - 1) * height_2 / (piles * Math.Tan(angle_1 * PI / 180)) + j * ((gap_1 + 2 * (l - 1) * height_2 / (piles * Math.Tan(angle_1 * PI / 180))) / p) + height_2 / (piles * Math.Tan(angle_1 * PI / 180))), 50 + Convert.ToSingle(height_2 - l * height_2 / piles));
-                PointF p3 = new PointF(80 + Convert.ToSingle(height_2 / Math.Tan(angle_1 * PI / 180) - (l - 1) * height_2 / (piles * Math.Tan(angle_1 * PI / 180)) + (j + 1) * ((gap_1 + 2 * (l - 1) * height_2 / (piles * Math.Tan(angle_1 * PI / 180))) / p) + height_2 / (piles * Math.Tan(angle_1 * PI / 180))), 50 + Convert.ToSingle(height_2 - l * height_2 / piles));
-                PointF p4 = new PointF(80 + Convert.ToSingle(height_2 / Math.Tan(angle_1 * PI / 180) - (l - 1) * height_2 / (piles * Math.Tan(angle_1 * PI / 180)) + (j + 1) * ((gap_1 + 2 * (l - 1) * height_2 / (piles * Math.Tan(angle_1 * PI / 180))) / p)), 50 + Convert.ToSingle(height_2 - (l - 1) * height_2 / piles));
-                PointF p5 = new PointF(80 + Convert.ToSingle(height_2 / Math.Tan(angle_1 * PI / 180) - (l - 1) * height_2 / (piles * Math.Tan(angle_1 * PI / 180)) + j * ((gap_1 + 2 * (l - 1) * height_2 / (piles * Math.Tan(angle_1 * PI / 180))) / p)), 50 + Convert.ToSingle(height_2 - (l - 1) * height_2 / piles));
-                mylayer[l - 1].mypass[j].pots = new PointF[5] { p1, p2, p3, p4, p5 };
+                if (angle == 120)
+                {
+                    PointF p1 = new PointF(80 + Convert.ToSingle(height_2 / Math.Tan(angle_1 * PI / 180) - (l - 1) * height_2 / (piles * Math.Tan(angle_1 * PI / 180)) + j * ((gap_1 + 2 * (l - 1) * height_2 / (piles * Math.Tan(angle_1 * PI / 180))) / p)), 50 + Convert.ToSingle(height_2 - (l - 1) * height_2 / piles));
+                    PointF p2 = new PointF(80 + Convert.ToSingle(height_2 / Math.Tan(angle_1 * PI / 180) - (l - 1) * height_2 / (piles * Math.Tan(angle_1 * PI / 180)) + j * ((gap_1 + 2 * (l - 1) * height_2 / (piles * Math.Tan(angle_1 * PI / 180))) / p) + height_2 / (piles * Math.Tan(angle_1 * PI / 180))), 50 + Convert.ToSingle(height_2 - l * height_2 / piles));
+                    PointF p3 = new PointF(80 + Convert.ToSingle(height_2 / Math.Tan(angle_1 * PI / 180) - (l - 1) * height_2 / (piles * Math.Tan(angle_1 * PI / 180)) + (j + 1) * ((gap_1 + 2 * (l - 1) * height_2 / (piles * Math.Tan(angle_1 * PI / 180))) / p) + height_2 / (piles * Math.Tan(angle_1 * PI / 180))), 50 + Convert.ToSingle(height_2 - l * height_2 / piles));
+                    PointF p4 = new PointF(80 + Convert.ToSingle(height_2 / Math.Tan(angle_1 * PI / 180) - (l - 1) * height_2 / (piles * Math.Tan(angle_1 * PI / 180)) + (j + 1) * ((gap_1 + 2 * (l - 1) * height_2 / (piles * Math.Tan(angle_1 * PI / 180))) / p)), 50 + Convert.ToSingle(height_2 - (l - 1) * height_2 / piles));
+                    PointF p5 = new PointF(80 + Convert.ToSingle(height_2 / Math.Tan(angle_1 * PI / 180) - (l - 1) * height_2 / (piles * Math.Tan(angle_1 * PI / 180)) + j * ((gap_1 + 2 * (l - 1) * height_2 / (piles * Math.Tan(angle_1 * PI / 180))) / p)), 50 + Convert.ToSingle(height_2 - (l - 1) * height_2 / piles));
+                    mylayer[l - 1].mypass[j].pots = new PointF[5] { p1, p2, p3, p4, p5 };
+
+                }
+                else
+                {
+                    PointF p1 = new PointF(160 + Convert.ToSingle(height_2 / Math.Tan(angle_1 * PI / 180) - (l - 1) * height_2 / (piles * Math.Tan(angle_1 * PI / 180)) + j * ((gap_1 + 2 * (l - 1) * height_2 / (piles * Math.Tan(angle_1 * PI / 180))) / p)), 50 + Convert.ToSingle(height_2 - (l - 1) * height_2 / piles));
+                    PointF p2 = new PointF(160 + Convert.ToSingle(height_2 / Math.Tan(angle_1 * PI / 180) - (l - 1) * height_2 / (piles * Math.Tan(angle_1 * PI / 180)) + j * ((gap_1 + 2 * (l - 1) * height_2 / (piles * Math.Tan(angle_1 * PI / 180))) / p) + height_2 / (piles * Math.Tan(angle_1 * PI / 180))), 50 + Convert.ToSingle(height_2 - l * height_2 / piles));
+                    PointF p3 = new PointF(160 + Convert.ToSingle(height_2 / Math.Tan(angle_1 * PI / 180) - (l - 1) * height_2 / (piles * Math.Tan(angle_1 * PI / 180)) + (j + 1) * ((gap_1 + 2 * (l - 1) * height_2 / (piles * Math.Tan(angle_1 * PI / 180))) / p) + height_2 / (piles * Math.Tan(angle_1 * PI / 180))), 50 + Convert.ToSingle(height_2 - l * height_2 / piles));
+                    PointF p4 = new PointF(160 + Convert.ToSingle(height_2 / Math.Tan(angle_1 * PI / 180) - (l - 1) * height_2 / (piles * Math.Tan(angle_1 * PI / 180)) + (j + 1) * ((gap_1 + 2 * (l - 1) * height_2 / (piles * Math.Tan(angle_1 * PI / 180))) / p)), 50 + Convert.ToSingle(height_2 - (l - 1) * height_2 / piles));
+                    PointF p5 = new PointF(160 + Convert.ToSingle(height_2 / Math.Tan(angle_1 * PI / 180) - (l - 1) * height_2 / (piles * Math.Tan(angle_1 * PI / 180)) + j * ((gap_1 + 2 * (l - 1) * height_2 / (piles * Math.Tan(angle_1 * PI / 180))) / p)), 50 + Convert.ToSingle(height_2 - (l - 1) * height_2 / piles));
+                    mylayer[l - 1].mypass[j].pots = new PointF[5] { p1, p2, p3, p4, p5 };
+
+
+                }
             }
 
             //中间填充
-            PointF pa = new PointF(80 + Convert.ToSingle(height_2 / Math.Tan(angle_1 * PI / 180) - (l - 1) * height_2 / (piles * Math.Tan(angle_1 * PI / 180)) + ((p - 2) / 2 + 1) * ((gap_1 + 2 * (l - 1) * height_2 / (piles * Math.Tan(angle_1 * PI / 180))) / p)), 50 + Convert.ToSingle(height_2 - (l - 1) * height_2 / piles));
-            PointF pb = new PointF(80 + Convert.ToSingle(height_2 / Math.Tan(angle_1 * PI / 180) - (l - 1) * height_2 / (piles * Math.Tan(angle_1 * PI / 180)) + ((p - 2) / 2 + 1) * ((gap_1 + 2 * (l - 1) * height_2 / (piles * Math.Tan(angle_1 * PI / 180))) / p) - height_2 / (piles * Math.Tan(angle_1 * PI / 180))), 50 + Convert.ToSingle(height_2 - l * height_2 / piles));
-            PointF pc = new PointF(80 + Convert.ToSingle(height_2 / Math.Tan(angle_1 * PI / 180) - (l - 1) * height_2 / (piles * Math.Tan(angle_1 * PI / 180)) + ((p + 2) / 2) * ((gap_1 + 2 * (l - 1) * height_2 / (piles * Math.Tan(angle_1 * PI / 180))) / p) + height_2 / (piles * Math.Tan(angle_1 * PI / 180))), 50 + Convert.ToSingle(height_2 - l * height_2 / piles));
-            PointF pd = new PointF(80 + Convert.ToSingle(height_2 / Math.Tan(angle_1 * PI / 180) - (l - 1) * height_2 / (piles * Math.Tan(angle_1 * PI / 180)) + ((p + 2) / 2) * ((gap_1 + 2 * (l - 1) * height_2 / (piles * Math.Tan(angle_1 * PI / 180))) / p)), 50 + Convert.ToSingle(height_2 - (l - 1) * height_2 / piles));
-            PointF pe = pa;
-            mylayer[l - 1].mypass[ p / 2].pots = new PointF[5] { pa, pb, pc, pd, pe };
+            if (angle == 120)
+            {
+                PointF pa = new PointF(80 + Convert.ToSingle(height_2 / Math.Tan(angle_1 * PI / 180) - (l - 1) * height_2 / (piles * Math.Tan(angle_1 * PI / 180)) + ((p - 2) / 2 + 1) * ((gap_1 + 2 * (l - 1) * height_2 / (piles * Math.Tan(angle_1 * PI / 180))) / p)), 50 + Convert.ToSingle(height_2 - (l - 1) * height_2 / piles));
+                PointF pb = new PointF(80 + Convert.ToSingle(height_2 / Math.Tan(angle_1 * PI / 180) - (l - 1) * height_2 / (piles * Math.Tan(angle_1 * PI / 180)) + ((p - 2) / 2 + 1) * ((gap_1 + 2 * (l - 1) * height_2 / (piles * Math.Tan(angle_1 * PI / 180))) / p) - height_2 / (piles * Math.Tan(angle_1 * PI / 180))), 50 + Convert.ToSingle(height_2 - l * height_2 / piles));
+                PointF pc = new PointF(80 + Convert.ToSingle(height_2 / Math.Tan(angle_1 * PI / 180) - (l - 1) * height_2 / (piles * Math.Tan(angle_1 * PI / 180)) + ((p + 2) / 2) * ((gap_1 + 2 * (l - 1) * height_2 / (piles * Math.Tan(angle_1 * PI / 180))) / p) + height_2 / (piles * Math.Tan(angle_1 * PI / 180))), 50 + Convert.ToSingle(height_2 - l * height_2 / piles));
+                PointF pd = new PointF(80 + Convert.ToSingle(height_2 / Math.Tan(angle_1 * PI / 180) - (l - 1) * height_2 / (piles * Math.Tan(angle_1 * PI / 180)) + ((p + 2) / 2) * ((gap_1 + 2 * (l - 1) * height_2 / (piles * Math.Tan(angle_1 * PI / 180))) / p)), 50 + Convert.ToSingle(height_2 - (l - 1) * height_2 / piles));
+                PointF pe = pa;
+                mylayer[l - 1].mypass[p / 2].pots = new PointF[5] { pa, pb, pc, pd, pe };
+
+            }
+            else
+            {
+                PointF pa = new PointF(160 + Convert.ToSingle(height_2 / Math.Tan(angle_1 * PI / 180) - (l - 1) * height_2 / (piles * Math.Tan(angle_1 * PI / 180)) + ((p - 2) / 2 + 1) * ((gap_1 + 2 * (l - 1) * height_2 / (piles * Math.Tan(angle_1 * PI / 180))) / p)), 50 + Convert.ToSingle(height_2 - (l - 1) * height_2 / piles));
+                PointF pb = new PointF(160 + Convert.ToSingle(height_2 / Math.Tan(angle_1 * PI / 180) - (l - 1) * height_2 / (piles * Math.Tan(angle_1 * PI / 180)) + ((p - 2) / 2 + 1) * ((gap_1 + 2 * (l - 1) * height_2 / (piles * Math.Tan(angle_1 * PI / 180))) / p) - height_2 / (piles * Math.Tan(angle_1 * PI / 180))), 50 + Convert.ToSingle(height_2 - l * height_2 / piles));
+                PointF pc = new PointF(160 + Convert.ToSingle(height_2 / Math.Tan(angle_1 * PI / 180) - (l - 1) * height_2 / (piles * Math.Tan(angle_1 * PI / 180)) + ((p + 2) / 2) * ((gap_1 + 2 * (l - 1) * height_2 / (piles * Math.Tan(angle_1 * PI / 180))) / p) + height_2 / (piles * Math.Tan(angle_1 * PI / 180))), 50 + Convert.ToSingle(height_2 - l * height_2 / piles));
+                PointF pd = new PointF(160 + Convert.ToSingle(height_2 / Math.Tan(angle_1 * PI / 180) - (l - 1) * height_2 / (piles * Math.Tan(angle_1 * PI / 180)) + ((p + 2) / 2) * ((gap_1 + 2 * (l - 1) * height_2 / (piles * Math.Tan(angle_1 * PI / 180))) / p)), 50 + Convert.ToSingle(height_2 - (l - 1) * height_2 / piles));
+                PointF pe = pa;
+                mylayer[l - 1].mypass[p / 2].pots = new PointF[5] { pa, pb, pc, pd, pe };
+
+            }
 
         }
 
-        //提交
+        //清除所有输入
         private void button3_Click(object sender, EventArgs e)
         {
-            piles = i + 1;
-            mylayer[i].set_pass_l(sum_pass);
-            mylayer[0].set_pass_f(0);
-            for (int j = i; j > 0; --j)
+            //连接数据库
+            string stpath = Application.StartupPath;
+            string connectionstring = "Data Source= " + Application.StartupPath + "\\test.db";
+            SQLiteConnection connection = new SQLiteConnection(connectionstring);
+            connection.Open();
+            string deletestr = "DELETE from welding WHERE height = {0} AND angle = {1} AND gap = {2} AND edge = {3} AND mode = {4}";
+            string deletesql = string.Format(deletestr, height, angle, gap, edge, mode);
+            SQLiteCommand command = new SQLiteCommand(deletesql, connection);
+            command.ExecuteNonQuery();  //执行命令
+            for (int j = 0; j < i + 1; ++j)
             {
-                mylayer[j - 1].set_pass_l(mylayer[j].get_pass_l() - mylayer[j].get_pass());
-                mylayer[j].set_pass_f(mylayer[j - 1].get_pass_l());
-
-
+                mylayer[j].mypass.Clear();
+                mylayer[j].set_pass(0);
+                mylayer[j].set_pass_f(0);
+                mylayer[j].set_pass_l(0);
+                mylayer[j].set_layer(0);
+                mylayer[j].set_mode(1);
             }
+            i = 0;
+            sum_pass = 0;
+            label28.Text = Convert.ToString(0);
+            label29.Text = Convert.ToString(0);
+
         }
 
         //数据输入
@@ -724,7 +886,7 @@ namespace WindowsFormsApp3
                 mode = 2;
 
             i = Convert.ToInt32(numericUpDown1.Text) - 1;
-            Pass newpass = new Pass(Convert.ToDouble(textBox8.Text), Convert.ToDouble(textBox7.Text), Convert.ToDouble(textBox5.Text), Convert.ToDouble(textBox6.Text), Convert.ToDouble(textBox13.Text), Convert.ToDouble(textBox12.Text), Convert.ToDouble(textBox11.Text), Convert.ToDouble(textBox10.Text), Convert.ToDouble(textBox9.Text));
+            Pass newpass = new Pass(Convert.ToDouble(textBox8.Text), Convert.ToDouble(textBox7.Text), Convert.ToDouble(textBox5.Text), Convert.ToDouble(textBox6.Text), Convert.ToDouble(textBox13.Text), Convert.ToDouble(textBox14.Text), Convert.ToDouble(textBox12.Text), Convert.ToDouble(textBox11.Text), Convert.ToDouble(textBox10.Text), Convert.ToDouble(textBox9.Text));
             mylayer[i].mypass.Add(newpass);
             mylayer[i].set_layer(Convert.ToInt32(numericUpDown1.Text));
             mylayer[i].set_current_pass(Convert.ToInt32(numericUpDown2.Text));
@@ -733,6 +895,17 @@ namespace WindowsFormsApp3
             label28.Text = numericUpDown1.Text;
             label29.Text = Convert.ToString(sum_pass);
 
+            //提交
+            piles = i + 1;
+            mylayer[i].set_pass_l(sum_pass);
+            mylayer[0].set_pass_f(0);
+            for (int j = i; j > 0; --j)
+            {
+                mylayer[j - 1].set_pass_l(mylayer[j].get_pass_l() - mylayer[j].get_pass());
+                mylayer[j].set_pass_f(mylayer[j - 1].get_pass_l());
+
+
+            }
 
             Console.WriteLine(mylayer[i].mypass.Count);
             //连接数据库
@@ -740,8 +913,8 @@ namespace WindowsFormsApp3
             string connectionstring = "Data Source= " + Application.StartupPath + "\\test.db";
             SQLiteConnection connection = new SQLiteConnection(connectionstring);
             connection.Open();
-            string insertstr = "INSERT into welding (layer, pass, X, Z, P, extension, current, speed, frequency, range, time, height, angle, gap, edge, mode) values ({0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, {9}, {10}, {11}, {12}, {13}, {14}, {15})";
-            string insertsql = string.Format(insertstr, mylayer[i].get_layer(), mylayer[i].get_current_pass(), mylayer[i].mypass[mylayer[i].get_current_pass() - 1].get_X(), mylayer[i].mypass[mylayer[i].get_current_pass() - 1].get_Z(), mylayer[i].mypass[mylayer[i].get_current_pass() - 1].get_P(), mylayer[i].mypass[mylayer[i].get_current_pass() - 1].get_extension(), mylayer[i].mypass[mylayer[i].get_current_pass() - 1].get_current(), mylayer[i].mypass[mylayer[i].get_current_pass() - 1].get_speed(), mylayer[i].mypass[mylayer[i].get_current_pass() - 1].get_frequency(), mylayer[i].mypass[mylayer[i].get_current_pass() - 1].get_range(), mylayer[i].mypass[mylayer[i].get_current_pass() - 1].get_time(), height, angle, gap, edge, mode);
+            string insertstr = "INSERT into welding (layer, pass, X, Z, P, extension, current, speed, frequency, range, time_l, time_r, height, angle, gap, edge, mode) values ({0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, {9}, {10}, {11}, {12}, {13}, {14}, {15}, {16})";
+            string insertsql = string.Format(insertstr, mylayer[i].get_layer(), mylayer[i].get_current_pass(), mylayer[i].mypass[mylayer[i].get_current_pass() - 1].get_X(), mylayer[i].mypass[mylayer[i].get_current_pass() - 1].get_Z(), mylayer[i].mypass[mylayer[i].get_current_pass() - 1].get_P(), mylayer[i].mypass[mylayer[i].get_current_pass() - 1].get_extension(), mylayer[i].mypass[mylayer[i].get_current_pass() - 1].get_current(), mylayer[i].mypass[mylayer[i].get_current_pass() - 1].get_speed(), mylayer[i].mypass[mylayer[i].get_current_pass() - 1].get_frequency(), mylayer[i].mypass[mylayer[i].get_current_pass() - 1].get_range(), mylayer[i].mypass[mylayer[i].get_current_pass() - 1].get_time_l(), mylayer[i].mypass[mylayer[i].get_current_pass() - 1].get_time_r(), height, angle, gap, edge, mode);
             SQLiteCommand command = new SQLiteCommand(insertsql, connection);
             command.ExecuteNonQuery();  //执行命令
 

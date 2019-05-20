@@ -57,7 +57,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="CSkin">
-      <HintPath>C:\Users\lenovo\Desktop\CSkin 16.1.14.3\CSkin 16.1.14.3\CSkin 4.0\CSkin.dll</HintPath>
+      <HintPath>C:\Users\lenovo\Desktop\weld_C#\WindowsFormsApp3\bin\x86\Debug\CSkin.dll</HintPath>
     </Reference>
     <Reference Include="Interop.FRRJIf">
       <HintPath>.\Interop.FRRJIf.dll</HintPath>
