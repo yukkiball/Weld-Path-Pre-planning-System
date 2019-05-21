@@ -15,6 +15,7 @@ namespace WindowsFormsApp3
         public Formlogin()
         {
             InitializeComponent();
+            this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
         }
 
 

@@ -76,6 +76,7 @@ namespace WindowsFormsApp3
     public form()
         {
             InitializeComponent();
+            this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             //设置文本框高度
             textBox1.AutoSize = false;
             textBox2.AutoSize = false;
@@ -221,8 +222,8 @@ namespace WindowsFormsApp3
                     mobjSysVarString = mobjDataTable.AddSysVar(FRRJIf.FRIF_DATA_TYPE.SYSVAR_STRING, "$TIMER[10].$COMMENT");
                     mobjSysVarPos = mobjDataTable.AddSysVarPos(FRRJIf.FRIF_DATA_TYPE.SYSVAR_POS, "$MNUTOOL[1,1]");
                     mobjVarString = mobjDataTable.AddSysVar(FRRJIf.FRIF_DATA_TYPE.SYSVAR_STRING, "$[HTTPKCL]CMDS[1]");
-                    mobjNumReg = mobjDataTable.AddNumReg(FRRJIf.FRIF_DATA_TYPE.NUMREG_INT, 6, 10);
-                    mobjNumReg2 = mobjDataTable.AddNumReg(FRRJIf.FRIF_DATA_TYPE.NUMREG_REAL, 1, 5);
+                    mobjNumReg = mobjDataTable.AddNumReg(FRRJIf.FRIF_DATA_TYPE.NUMREG_INT, 1, 6);
+                    mobjNumReg2 = mobjDataTable.AddNumReg(FRRJIf.FRIF_DATA_TYPE.NUMREG_REAL, 16, 150);
                     mobjPosRegXyzwpr = mobjDataTable.AddPosRegXyzwpr(FRRJIf.FRIF_DATA_TYPE.POSREG_XYZWPR, 1, 1, 10);
                     mobjStrReg = mobjDataTable.AddString(FRRJIf.FRIF_DATA_TYPE.STRREG, 1, 3);
                     mobjStrRegComment = mobjDataTable.AddString(FRRJIf.FRIF_DATA_TYPE.STRREG_COMMENT, 1, 3);
@@ -298,6 +299,7 @@ namespace WindowsFormsApp3
             //txtResult.Text = "Connect OK to " + HostName;
             //lblConnect.Text = txtResult.Text;
             MessageBox.Show("Connected");
+            toolStripStatusLabel1.Text = "已连接";
             //this.Text = HostName + " - FRRJIf Test";
 
             //msubSetTestControls(true);
@@ -315,7 +317,7 @@ namespace WindowsFormsApp3
             //timLoop.Enabled = false;
 
             MessageBox.Show("Connect error");
-
+            toolStripStatusLabel1.Text = "未连接";
             //txtResult.Text = "Connect Failed to " + HostName;
             //lblConnect.Text = txtResult.Text;
             //this.Text = " Weld Test";
@@ -337,6 +339,7 @@ namespace WindowsFormsApp3
             // & " (" & mobjCore.ProtectStatus & ")"
             //lblConnect.Text = txtResult.Text;
             MessageBox.Show("Connect error");
+            toolStripStatusLabel1.Text = "未连接";
             //this.Text = "Weld Test";
 
             //msubClearVars();
@@ -353,8 +356,18 @@ namespace WindowsFormsApp3
             //写入数值变量寄存器
             int[] intValues = new int[101];
             float[] sngValues = new float[101];
+            //{
+            //    for (ii = 0; ii <= mobjNumReg2.EndIndex - mobjNumReg2.StartIndex; ii++)
+            //    {
+            //        sngValues[ii] = (float)(5.8);
+            //    }
+            //    if (mobjNumReg2.SetValues(mobjNumReg2.StartIndex, sngValues, 3) == false)
+            //    {
+            //        MessageBox.Show("SetNumReg Real Error");
+            //    }
+            //}
 
-            
+
             {
                 //整型变量
                 //    for (ii = 0; ii <= mobjNumReg.EndIndex - mobjNumReg.StartIndex; ii++)
@@ -399,13 +412,16 @@ namespace WindowsFormsApp3
                 //Console.WriteLine(sngValues[14]);
 
 
-                if (mobjNumReg2.SetValues(0, sngValues, sum_pass * 2) == false)
+
+                if (mobjNumReg2.SetValues(mobjNumReg2.StartIndex, sngValues, sum_pass * 2) == false)
                 {
-                    MessageBox.Show("SetNumReg Float Error");
+                    MessageBox.Show("SetNumReg Error");
+                    toolStripStatusLabel2.Text = "数据写入失败";
                 }
                 else
                 {
-                    MessageBox.Show("SetNumReg Float Success");
+                    MessageBox.Show("SetNumReg Success");
+                    toolStripStatusLabel2.Text = "数据已写入";
                 }
 
 
@@ -414,7 +430,7 @@ namespace WindowsFormsApp3
             //写入位置变量寄存器
             //int intRand = 0;
             //int ii = 0;
-            
+
             //List<Array> sng = new List<Array>();
             //for(int jj = 0; jj <sum_pass; jj++)
             //{
